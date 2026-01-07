@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="Gemini_Generated_Image_36zcu336zcu336zc.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMIÈRE | Sistema Integral</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --dark: #0a0a0a; --glass: rgba(255, 255, 255, 0.05); --success: #27ae60; --danger: #e74c3c; }
+        body, html { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: var(--dark); color: white; scroll-behavior: smooth; }
+
+        /* Notificaciones */
+        #notification-center { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 320px; pointer-events: none; }
+        .toast { background: var(--gold); color: black; padding: 18px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.3s ease; font-weight: 600; pointer-events: auto; }
+
+        .screen { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+        .active { display: block; }
+        .container { max-width: 1100px; margin: auto; padding: 20px; }
+
+        /* Tarjeta de Plato */
+        .menu-item { background: var(--glass); padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.03); }
+        .category-title { font-family: 'Playfair Display'; color: var(--gold); font-size: 1.8rem; margin: 30px 0 10px; border-bottom: 1px solid #222; }
+
+        /* Carrito Mejorado */
+        #cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 2px solid var(--gold); padding: 15px 0; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+        .cart-content { max-width: 1100px; margin: auto; width: 90%; display: flex; justify-content: space-between; align-items: center; }
+        .cart-items-list { max-height: 150px; overflow-y: auto; width: 90%; margin: 0 auto 10px; font-size: 0.85rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .cart-item-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: #bbb; }
+        .btn-remove { color: var(--danger); cursor: pointer; font-weight: bold; margin-left: 10px; }
+
+        /* Admin Layout */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; }
+        .card { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; margin-bottom: 20px; }
+        
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-gold:hover { opacity: 0.8; }
+        .btn-add { background: var(--gold); border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box; }
+
+        /* Estilo Alertas Admin */
+        .alert-item { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 12px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="notification-center"></div>
+
+    <div id="screen-home" class="screen active">
+        <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+            <h1 style="font-family: 'Playfair Display'; font-size: 4rem; color: var(--gold); margin: 0;">Lumière</h1>
+            <div class="card" style="width: 280px;">
+                <select id="mesa-select" style="width:100%; padding:15px; background:black; color:var(--gold); border:1px solid var(--gold); border-radius:10px;">
+                    <option value="1">Mesa 01</option><option value="2">Mesa 02</option><option value="3">Mesa 03</option><option value="4">Mesa 04</option>
+                </select>
+                <button onclick="iniciarSesion()" class="btn-gold" style="width:100%; margin-top:20px;">Menú Digital</button>
+            </div>
+            <p onclick="nav('screen-login')" style="margin-top:40px; color:#222; cursor:pointer; font-size:0.7rem;">ADMINISTRACIÓN</p>
+        </div>
+    </div>
+
+    <div id="screen-client" class="screen">
+        <div class="container" style="padding-bottom: 180px;">
+            <header style="display:flex; justify-content:space-between; align-items:center; padding: 20px 0;">
+                <h2 style="font-family: 'Playfair Display'; margin:0;">Lumière</h2>
+                <span id="display-mesa" style="color:var(--gold); font-weight: 600;">MESA --</span>
+            </header>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button onclick="enviarAlerta('🔔 Necesito al Camarero')" class="btn-gold" style="font-size: 0.7rem; background: #333; color: white;">🔔 Llamar Camarero</button>
+                <button onclick="enviarAlerta('💵 Solicito la Cuenta')" class="btn-gold" style="font-size: 0.7rem; background: #333; color: white;">💵 Pedir Cuenta</button>
+            </div>
+
+            <div id="menu-cliente-render"></div>
+
+            <div id="cart-bar">
+                <div id="cart-items-list" class="cart-items-list"></div>
+                <div class="cart-content">
+                    <div id="cart-info" style="color:var(--gold); font-size: 1.1rem;">Total: $0.00</div>
+                    <button onclick="enviarPedido()" class="btn-gold" style="padding: 10px 20px;">Enviar Pedido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-login" class="screen">
+        <div style="height:100vh; display:flex; align-items:center; justify-content:center;">
+            <div class="card" style="text-align:center; width:280px;">
+                <h3 style="color:var(--gold);">ACCESO PANEL</h3>
+                <input type="password" id="pin" placeholder="PIN" style="width:94%; padding:12px; text-align:center; font-size:1.5rem; background:#000; border:1px solid #333; color:white; border-radius:8px;">
+                <button onclick="if(document.getElementById('pin').value=='1234') nav('screen-admin')" class="btn-gold" style="width:100%; margin-top:15px;">Entrar</button>
+                <button onclick="nav('screen-home')" style="background:none; border:none; color:#555; margin-top:10px; cursor:pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-admin" class="screen">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="color:var(--gold);">Panel de Control</h2>
+                <button onclick="nav('screen-home')" class="btn-gold" style="padding:8px 15px; font-size:0.7rem;">Cerrar Panel</button>
+            </div>
+
+            <div class="admin-grid">
+                <div>
+                    <div class="card" style="border-color: var(--gold);">
+                        <h3 style="margin-top:0; color: var(--gold);">🔔 Avisos de Mesas</h3>
+                        <div id="admin-alerts-log">
+                            <p style="color:#444; font-size: 0.8rem;">No hay avisos pendientes...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-top:0;">Nuevo Plato</h3>
+                        <div class="form-group"><label>Nombre</label><input type="text" id="p-name"></div>
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="p-cat">
+                                <option>Entradas</option><option>Platos Principales</option>
+                                <option>Postres</option><option>Bebidas</option>
+                                <option>Coctelería</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Precio ($)</label><input type="number" id="p-price"></div>
+                        <button class="btn-gold" onclick="addProduct()" style="width:100%;">Registrar</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-top:0;">Gestión de Carta</h3>
+                    <div id="admin-inventory-render"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lumiere_db')) || [
+            { id: 1, cat: "Platos Principales", nombre: "Ojo de Bife", precio: 4500, disponible: true },
+            { id: 2, cat: "Bebidas", nombre: "Limonada Lumière", precio: 1200, disponible: true }
+        ];
+        let cart = [];
+        let mesaActual = 1;
+
+        // --- SISTEMA DE ALERTAS ---
+        
+        // Enviar alerta del Cliente al Admin
+        function enviarAlerta(tipo) {
+            let alertas = JSON.parse(localStorage.getItem('lumiere_alerts')) || [];
+            alertas.push({
+                id: Date.now(),
+                mesa: mesaActual,
+                msg: tipo,
+                visto: false
+            });
+            localStorage.setItem('lumiere_alerts', JSON.stringify(alertas));
+            toast("Petición enviada al staff", "var(--success)");
+        }
+
+        // El admin responde o marca como leída
+        function resolverAlerta(id) {
+            let alertas = JSON.parse(localStorage.getItem('lumiere_alerts')) || [];
+            alertas = alertas.filter(a => a.id !== id);
+            localStorage.setItem('lumiere_alerts', JSON.stringify(alertas));
+            renderAlerts();
+        }
+
+        // Renderizar alertas en el panel Admin
+        function renderAlerts() {
+            const container = document.getElementById('admin-alerts-log');
+            if(!container) return;
+            
+            let alertas = JSON.parse(localStorage.getItem('lumiere_alerts')) || [];
+            
+            if(alertas.length === 0) {
+                container.innerHTML = `<p style="color:#444; font-size: 0.8rem;">No hay avisos pendientes...</p>`;
+                return;
+            }
+
+            container.innerHTML = alertas.map(a => `
+                <div class="alert-item">
+                    <div>
+                        <b style="color:var(--gold);">MESA ${a.mesa}</b><br>
+                        <span style="font-size:0.8rem;">${a.msg}</span>
+                    </div>
+                    <button onclick="resolverAlerta(${a.id})" style="background:var(--success); border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">✔</button>
+                </div>
+            `).join('');
+        }
+
+        // Escuchar cambios en otras pestañas (Simulación de tiempo real)
+        window.addEventListener('storage', () => {
+            renderAlerts();
+            render();
+        });
+
+        // --- LÓGICA DE NAVEGACIÓN Y RENDER ---
+
+        function nav(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            render();
+            if(id === 'screen-admin') renderAlerts();
+        }
+
+        function iniciarSesion() {
+            mesaActual = document.getElementById('mesa-select').value;
+            document.getElementById('display-mesa').innerText = "MESA " + mesaActual;
+            nav('screen-client');
+        }
+
+        function addProduct() {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const cat = document.getElementById('p-cat').value;
+            if (!name || !price) return;
+            db.push({ id: Date.now(), cat, nombre: name, precio: parseFloat(price), disponible: true });
+            sincronizar();
+            document.getElementById('p-name').value = "";
+            document.getElementById('p-price').value = "";
+            toast("Plato registrado", "var(--success)");
+        }
+
+        function updatePrice(id, newPrice) {
+            const item = db.find(x => x.id === id);
+            if(item) {
+                item.precio = parseFloat(newPrice) || 0;
+                localStorage.setItem('lumiere_db', JSON.stringify(db));
+            }
+        }
+
+        function toggleDispo(id) {
+            const item = db.find(x => x.id === id);
+            item.disponible = !item.disponible;
+            sincronizar();
+        }
+
+        function deleteItem(id) {
+            if(confirm("¿Eliminar plato?")) {
+                db = db.filter(x => x.id !== id);
+                sincronizar();
+            }
+        }
+
+        function sincronizar() {
+            localStorage.setItem('lumiere_db', JSON.stringify(db));
+            render();
+        }
+
+        function addToCart(id) {
+            const item = db.find(x => x.id === id);
+            cart.push({...item, cartId: Date.now() + Math.random()});
+            updateCartUI();
+            toast(`+ ${item.nombre}`, "var(--gold)");
+        }
+
+        function removeFromCart(cartId) {
+            cart = cart.filter(x => x.cartId !== cartId);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const bar = document.getElementById('cart-bar');
+            const list = document.getElementById('cart-items-list');
+            if(cart.length > 0) {
+                bar.style.display = 'flex';
+                list.innerHTML = cart.map(i => `
+                    <div class="cart-item-row">
+                        <span>${i.nombre}</span>
+                        <span>$${i.precio.toFixed(2)} <span class="btn-remove" onclick="removeFromCart(${i.cartId})">✕</span></span>
+                    </div>
+                `).join('');
+                const total = cart.reduce((sum, item) => sum + item.precio, 0);
+                document.getElementById('cart-info').innerText = `Total: $${total.toFixed(2)}`;
+            } else { bar.style.display = 'none'; }
+        }
+
+        function enviarPedido() {
+            enviarAlerta(`🍽 NUEVO PEDIDO: ${cart.length} platos`);
+            alert("¡Pedido enviado a cocina!");
+            cart = [];
+            updateCartUI();
+            nav('screen-home');
+        }
+
+        function render() {
+            const cRender = document.getElementById('menu-cliente-render');
+            if(cRender) {
+                cRender.innerHTML = "";
+                const cats = [...new Set(db.map(x => x.cat))];
+                cats.forEach(c => {
+                    const items = db.filter(i => i.cat === c && i.disponible);
+                    if(items.length > 0) {
+                        cRender.innerHTML += `<div class="category-title">${c}</div>`;
+                        items.forEach(i => {
+                            cRender.innerHTML += `<div class="menu-item">
+                                <div><b>${i.nombre}</b><br><small style="color:var(--gold);">$${i.precio}</small></div>
+                                <button class="btn-add" onclick="addToCart(${i.id})">+</button>
+                            </div>`;
+                        });
+                    }
+                });
+            }
+
+            const aInv = document.getElementById('admin-inventory-render');
+            if(aInv) {
+                aInv.innerHTML = db.map(i => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #222;">
+                        <div style="font-size:0.75rem; width:40%;">${i.nombre}</div>
+                        <input type="number" value="${i.precio}" onchange="updatePrice(${i.id}, this.value)" style="width:60px; background:black; border:1px solid #444; color:var(--gold); padding:4px; font-size:0.7rem;">
+                        <div style="display:flex; gap:4px;">
+                            <button onclick="toggleDispo(${i.id})" style="background:${i.disponible?'var(--success)':'var(--danger)'}; border:none; color:white; padding:4px; border-radius:4px; font-size:0.6rem;">${i.disponible?'ACT':'OFF'}</button>
+                            <button onclick="deleteItem(${i.id})" style="background:#333; border:none; color:white; padding:4px; border-radius:4px; font-size:0.6rem;">🗑</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function toast(msj, color) {
+            const t = document.createElement('div'); t.className = 'toast'; t.style.background = color; t.innerText = msj;
+            document.getElementById('notification-center').appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+
+        window.onload = () => { render(); renderAlerts(); };
+    </script>
+</body>
+</html>
