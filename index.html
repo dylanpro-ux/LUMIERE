@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMIÈRE | Elite Dining Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --gold: #c5a059; 
+            --gold-bright: #f1d39a;
+            --dark: #050505; 
+            --glass: rgba(255,255,255,0.03); 
+            --success: #2ecc71; 
+            --danger: #e74c3c; 
+        }
+
+        body, html { 
+            margin: 0; padding: 0; 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--dark); 
+            color: white; 
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            transition: box-shadow 0.5s ease;
+        }
+
+        /* Notificaciones de Élite */
+        #notification-center { position: fixed; top: 20px; right: 20px; z-index: 10000; width: 320px; pointer-events: none; }
+        .toast { 
+            background: linear-gradient(135deg, var(--gold), #8a6d3b); 
+            color: black; padding: 18px; border-radius: 15px; margin-bottom: 10px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            font-weight: 600; pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Layout */
+        .screen { display: none; min-height: 100vh; animation: fadeIn 0.6s ease-out; }
+        .active { display: block; }
+        .container { max-width: 600px; margin: auto; padding: 25px; }
+
+        /* Buscador VIP */
+        .search-box {
+            width: 100%; padding: 15px; background: var(--glass);
+            border: 1px solid #222; border-radius: 15px; color: white;
+            margin-bottom: 25px; outline: none; transition: 0.3s;
+            box-sizing: border-box; font-family: 'Poppins';
+        }
+        .search-box:focus { border-color: var(--gold); background: rgba(255,255,255,0.08); }
+
+        /* Estilo Menú */
+        .category-title { 
+            font-family: 'Playfair Display'; color: var(--gold); 
+            font-size: 2.2rem; margin: 45px 0 15px; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+        }
+
+        .menu-item { 
+            background: var(--glass); padding: 22px; border-radius: 25px; 
+            margin-bottom: 18px; display: flex; justify-content: space-between; 
+            align-items: center; border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px); transition: all 0.3s ease;
+        }
+        .menu-item:hover { transform: scale(1.02); border-color: var(--gold); }
+
+        .diet-tags { display: flex; gap: 8px; margin-top: 5px; }
+        .tag { font-size: 0.6rem; padding: 2px 8px; border-radius: 5px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; }
+
+        /* Botones y UI */
+        .btn-gold { 
+            background: var(--gold); color: black; border: none; 
+            padding: 15px 25px; border-radius: 15px; font-weight: bold; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s;
+        }
+        .btn-gold:active { transform: scale(0.95); }
+
+        .btn-add { 
+            background: var(--gold); border: none; width: 45px; height: 45px; 
+            border-radius: 50%; cursor: pointer; font-size: 1.5rem; 
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+        }
+
+        /* Carrito Dinámico */
+        #cart-modal { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: rgba(10,10,10,0.98); border-top: 2px solid var(--gold); 
+            border-radius: 30px 30px 0 0; padding: 20px 0; 
+            display: none; z-index: 999; backdrop-filter: blur(20px);
+        }
+
+        .tip-container {
+            display: flex; justify-content: space-around; margin: 15px 0;
+            padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px;
+        }
+        .tip-btn { 
+            background: none; border: 1px solid #333; color: #777; 
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.3s;
+        }
+        .tip-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(197, 160, 89, 0.1); }
+
+        /* Admin Alerts */
+        .order-card { 
+            background: #111; padding: 18px; border-radius: 18px; 
+            margin-bottom: 12px; border-left: 6px solid var(--gold);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* Sugerencia del Chef */
+        .chef-special {
+            background: linear-gradient(45deg, #1a1a1a, #0a0a0a);
+            border: 1px gold dashed; padding: 20px; border-radius: 20px;
+            margin-bottom: 30px; position: relative; overflow: hidden;
+        }
+        .chef-special::before {
+            content: "RECOMENDACIÓN"; position: absolute; top: 10px; right: -30px;
+            background: var(--gold); color: black; font-size: 0.6rem;
+            padding: 5px 40px; transform: rotate(45deg); font-weight: bold;
+        }
+
+        @keyframes slideIn { from { transform: translateX(110%); } to { transform: translateX(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="notification-center"></div>
+
+    <div id="screen-home" class="screen active">
+        <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+            <h1 style="font-family: 'Playfair Display'; font-size: 5rem; color: var(--gold); margin: 0;">Lumière</h1>
+            <p style="letter-spacing: 10px; color: #444; margin-bottom: 40px;">FINE DINING</p>
+            
+            <div class="container" style="width: 320px; background: rgba(255,255,255,0.02); padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.05);">
+                <label style="color: var(--gold); font-size: 0.7rem; letter-spacing: 2px;">BIENVENIDO</label>
+                <select id="mesa-select" style="width:100%; padding:18px; background:black; color:white; border:1px solid var(--gold); border-radius:15px; margin: 15px 0; font-size: 1.1rem; outline: none;">
+                    <option value="1">Mesa 01</option><option value="2">Mesa 02</option>
+                    <option value="3">Mesa 03</option><option value="4">Mesa 04</option>
+                </select>
+                <button onclick="iniciarExperiencia()" class="btn-gold" style="width:100%;">Iniciar Velada</button>
+            </div>
+            <p onclick="nav('screen-login')" style="margin-top:50px; color:#1a1a1a; cursor:pointer; font-size: 0.8rem;">ADMINISTRATION</p>
+        </div>
+    </div>
+
+    <div id="screen-client" class="screen">
+        <div class="container" style="padding-bottom: 220px;">
+            <header style="display:flex; justify-content:space-between; align-items:center; padding: 30px 0;">
+                <div>
+                    <h2 style="font-family: 'Playfair Display'; color: var(--gold); margin:0; font-size: 1.8rem;">Lumière</h2>
+                    <small style="color: #555; letter-spacing: 2px;">EXPERIENCIA DIGITAL</small>
+                </div>
+                <div id="display-mesa" style="background: var(--gold); color: black; padding: 8px 20px; border-radius: 30px; font-weight: bold; font-size: 0.8rem;"></div>
+            </header>
+
+            <div id="chef-suggestion-box"></div>
+
+            <input type="text" id="menu-search" class="search-box" placeholder="¿Qué desea degustar hoy?..." oninput="filtrarMenu()">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 40px;">
+                <button onclick="enviarAccion('🔔 Solicita asistencia')" style="background:var(--glass); color:white; border:1px solid #222; padding:18px; border-radius:18px; cursor:pointer; font-family:'Poppins';">🔔 Mozo</button>
+                <button onclick="enviarAccion('💵 Solicita la cuenta')" style="background:var(--glass); color:white; border:1px solid #222; padding:18px; border-radius:18px; cursor:pointer; font-family:'Poppins';">💵 Cuenta</button>
+            </div>
+
+            <div id="menu-cliente-render"></div>
+        </div>
+
+        <div id="cart-modal">
+            <div class="container">
+                <div id="tip-section">
+                    <p style="font-size: 0.65rem; color: #666; margin: 0; text-align: center; letter-spacing: 1px;">GRATITUD PARA EL SERVICIO</p>
+                    <div class="tip-container">
+                        <button class="tip-btn" onclick="selectTip(0, this)">0%</button>
+                        <button class="tip-btn" onclick="selectTip(10, this)">10%</button>
+                        <button class="tip-btn active" onclick="selectTip(15, this)">15%</button>
+                        <button class="tip-btn" onclick="selectTip(20, this)">20%</button>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <div>
+                        <span id="cart-items-count" style="color:var(--gold); font-size:0.7rem; font-weight:600;"></span>
+                        <div id="cart-total-price" style="font-size:1.6rem; font-weight:bold;"></div>
+                    </div>
+                    <button onclick="procesarPedido()" class="btn-gold">Confirmar Pedido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-admin" class="screen">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+                <h2 style="color:var(--gold); font-family: 'Playfair Display'; font-size: 2rem;">Staff Dashboard</h2>
+                <button onclick="nav('screen-home')" class="btn-gold" style="padding: 8px 15px; font-size: 0.7rem;">Salir</button>
+            </div>
+
+            <h3 style="color: var(--gold); border-bottom: 1px solid #222; padding-bottom: 10px;">📋 Órdenes en Curso</h3>
+            <div id="admin-orders-log" style="margin-bottom: 50px;"></div>
+
+            <div style="background:#111; padding:25px; border-radius:25px; border: 1px solid #222;">
+                <h3 style="margin-top:0;">Nuevo Ítem</h3>
+                <div style="display:grid; gap:10px; margin-bottom:20px;">
+                    <input type="text" id="p-name" placeholder="Nombre" style="padding:15px; background:black; border:1px solid #333; color:white; border-radius:10px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <input type="number" id="p-price" placeholder="Precio ($)" style="padding:15px; background:black; border:1px solid #333; color:white; border-radius:10px;">
+                        <select id="p-cat" style="padding:15px; background:black; border:1px solid #333; color:white; border-radius:10px;">
+                            <option>Entradas</option><option>Principales</option><option>Bebidas</option><option>Postres</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="registrarPlato()" class="btn-gold" style="width:100%;">Registrar en Menú</button>
+            </div>
+            <div id="admin-inventory-list" style="margin-top:30px;"></div>
+        </div>
+    </div>
+
+    <div id="screen-login" class="screen">
+        <div style="height:100vh; display:flex; align-items:center; justify-content:center;">
+            <div style="background:#111; padding:40px; border-radius:30px; border:1px solid var(--gold); text-align:center;">
+                <h3 style="color:var(--gold); margin-bottom:25px;">ACCESO STAFF</h3>
+                <input type="password" id="pin-input" placeholder="PIN" style="width:100%; padding:15px; background:black; border:1px solid #333; color:white; text-align:center; font-size:1.5rem; border-radius:15px; box-sizing:border-box;">
+                <button onclick="validarLogin()" class="btn-gold" style="width:100%; margin-top:20px;">Ingresar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzOVWCHGbZcjadChZEfiMNWxIHO5HALhA",
+            authDomain: "menu-digital-53494.firebaseapp.com",
+            projectId: "menu-digital-53494",
+            storageBucket: "menu-digital-53494.firebasestorage.app",
+            messagingSenderId: "321264371948",
+            appId: "1:321264371948:web:6ef7d16fc5cd98986ffdc9",
+            databaseURL: "https://menu-digital-53494-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let mesaActual = 0;
+        let carrito = [];
+        let propinaSeleccionada = 15;
+        let menuCache = {};
+
+        // --- NAVEGACIÓN ---
+        window.nav = (id) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        };
+
+        window.validarLogin = () => {
+            if(document.getElementById('pin-input').value === '1234') nav('screen-admin');
+            else toast("PIN INCORRECTO", "var(--danger)");
+        };
+
+        window.iniciarExperiencia = () => {
+            mesaActual = document.getElementById('mesa-select').value;
+            document.getElementById('display-mesa').innerText = `MESA ${mesaActual}`;
+            nav('screen-client');
+            toast(`Bienvenido a Lumière`, "var(--gold)");
+        };
+
+        // --- LÓGICA CLIENTE ---
+        window.filtrarMenu = () => {
+            const term = document.getElementById('menu-search').value.toLowerCase();
+            renderMenuCliente(term);
+        };
+
+        window.agregarAlCarrito = (nombre, precio) => {
+            carrito.push({ nombre, precio });
+            renderCarrito();
+            toast(`Añadido: ${nombre}`, "rgba(197, 160, 89, 0.2)");
+        };
+
+        window.selectTip = (percent, btn) => {
+            document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            propinaSeleccionada = percent;
+            renderCarrito();
+        };
+
+        function renderCarrito() {
+            const bar = document.getElementById('cart-modal');
+            if(carrito.length > 0) {
+                bar.style.display = 'block';
+                const subtotal = carrito.reduce((s, i) => s + i.precio, 0);
+                const total = subtotal + (subtotal * propinaSeleccionada / 100);
+                document.getElementById('cart-items-count').innerText = `${carrito.length} ÍTEMS SELECCIONADOS`;
+                document.getElementById('cart-total-price').innerText = `$${total.toFixed(0)}`;
+            } else { bar.style.display = 'none'; }
+        }
+
+        window.enviarAccion = (msg) => {
+            push(ref(db, 'alertas_staff'), { mesa: mesaActual, msg, time: Date.now() });
+            toast("Solicitud enviada al Staff", "var(--gold)");
+        };
+
+        window.procesarPedido = () => {
+            const detalle = carrito.map(i => i.nombre).join(", ");
+            push(ref(db, 'alertas_staff'), { 
+                mesa: mesaActual, 
+                msg: `🍽 COMANDA: ${detalle}`, 
+                time: Date.now() 
+            });
+            carrito = []; renderCarrito();
+            toast("Su pedido está en cocina", "var(--success)");
+        };
+
+        // --- LÓGICA ADMIN ---
+        window.registrarPlato = () => {
+            const nombre = document.getElementById('p-name').value;
+            const precio = parseInt(document.getElementById('p-price').value);
+            const cat = document.getElementById('p-cat').value;
+            if(nombre && precio) {
+                push(ref(db, 'menu'), { nombre, precio, cat, disponible: true });
+                document.getElementById('p-name').value = "";
+                document.getElementById('p-price').value = "";
+            }
+        };
+
+        window.completarOrden = (key, mesa) => {
+            remove(ref(db, `alertas_staff/${key}`));
+            push(ref(db, 'notificaciones_mesas'), {
+                mesa: mesa,
+                msg: "✨ Su pedido está listo. El mozo se dirige a su mesa.",
+                time: Date.now()
+            });
+        };
+
+        window.toggleStock = (key, val) => update(ref(db, `menu/${key}`), { disponible: !val });
+        window.borrarPlato = (key) => remove(ref(db, `menu/${key}`));
+
+        // --- RENDERIZADO DINÁMICO ---
+        function renderMenuCliente(filter = "") {
+            const div = document.getElementById('menu-cliente-render');
+            div.innerHTML = "";
+            const cats = [...new Set(Object.values(menuCache).map(x => x.cat))];
+
+            cats.forEach(cat => {
+                const items = Object.keys(menuCache).filter(key => {
+                    const i = menuCache[key];
+                    return i.cat === cat && i.nombre.toLowerCase().includes(filter) && i.disponible;
+                });
+
+                if(items.length > 0) {
+                    div.innerHTML += `<div class="category-title">${cat}</div>`;
+                    items.forEach(key => {
+                        const i = menuCache[key];
+                        div.innerHTML += `
+                            <div class="menu-item">
+                                <div>
+                                    <b>${i.nombre}</b>
+                                    <div class="diet-tags"><span class="tag">Premium</span></div>
+                                    <small style="color:var(--gold)">$${i.precio}</small>
+                                </div>
+                                <button class="btn-add" onclick="agregarAlCarrito('${i.nombre}', ${i.precio})">+</button>
+                            </div>`;
+                    });
+                }
+            });
+        }
+
+        // --- LISTENERS ---
+        onValue(ref(db, 'menu'), (snap) => {
+            menuCache = snap.val() || {};
+            renderMenuCliente();
+            // Render Admin
+            const adminList = document.getElementById('admin-inventory-list');
+            adminList.innerHTML = "";
+            Object.keys(menuCache).forEach(key => {
+                const i = menuCache[key];
+                adminList.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; background:#000; padding:12px; margin-bottom:8px; border-radius:10px; font-size:0.8rem;">
+                        <span>${i.nombre} (${i.cat})</span>
+                        <div>
+                            <button onclick="toggleStock('${key}', ${i.disponible})" style="background:${i.disponible? 'var(--success)':'var(--danger)'}; border:none; color:white; border-radius:5px; padding:5px;">${i.disponible?'ON':'OFF'}</button>
+                            <button onclick="borrarPlato('${key}')" style="background:none; border:none; color:#444; margin-left:10px;">🗑</button>
+                        </div>
+                    </div>`;
+            });
+            // Sugerencia
+            const keys = Object.keys(menuCache);
+            if(keys.length > 0) {
+                const s = menuCache[keys[Math.floor(Math.random()*keys.length)]];
+                document.getElementById('chef-suggestion-box').innerHTML = `
+                    <div class="chef-special">
+                        <h4 style="margin:0; color:var(--gold)">Chef's Choice</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <span>${s.nombre}</span>
+                            <button onclick="agregarAlCarrito('${s.nombre}', ${s.precio})" class="btn-gold" style="padding:5px 15px; font-size:0.7rem;">Pedir $${s.precio}</button>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        onValue(ref(db, 'alertas_staff'), (snap) => {
+            const log = document.getElementById('admin-orders-log');
+            log.innerHTML = "";
+            const data = snap.val() || {};
+            Object.keys(data).forEach(key => {
+                const a = data[key];
+                log.innerHTML += `
+                    <div class="order-card">
+                        <div><b style="color:var(--gold)">MESA ${a.mesa}</b><br><small>${a.msg}</small></div>
+                        <button onclick="completarOrden('${key}', ${a.mesa})" class="btn-gold" style="padding:10px;">LISTO</button>
+                    </div>`;
+            });
+        });
+
+        onValue(ref(db, 'notificaciones_mesas'), (snap) => {
+            const data = snap.val() || {};
+            Object.keys(data).forEach(key => {
+                const n = data[key];
+                if(n.mesa == mesaActual && (Date.now() - n.time) < 10000) {
+                    document.body.style.boxShadow = "inset 0 0 100px var(--gold)";
+                    setTimeout(() => document.body.style.boxShadow = "none", 2000);
+                    toast(n.msg, "var(--gold)");
+                    remove(ref(db, `notificaciones_mesas/${key}`));
+                }
+            });
+        });
+
+        function toast(m, c) {
+            const t = document.createElement('div'); t.className = 'toast';
+            t.style.background = c; t.innerText = m;
+            document.getElementById('notification-center').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(()=>t.remove(), 500); }, 4500);
+        }
+    </script>
+</body>
+</html>
